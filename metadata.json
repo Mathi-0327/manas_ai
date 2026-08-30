@@ -1,0 +1,6 @@
+{
+  "name": "MANAS-NER Cognitive Care Platform",
+  "description": "Offline-first AI-powered cognitive gaming, memory assistance, and caregiver monitoring platform for elderly dementia patients in the North Eastern Region.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
