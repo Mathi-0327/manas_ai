@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { MemoryItem } from '../../types';
 import { audioService } from '../../lib/audioService';
+import { localDB } from '../../lib/storage';
 
 interface AddMemoryModalProps {
   isOpen: boolean;
@@ -255,20 +256,22 @@ export const AddMemoryModal: React.FC<AddMemoryModalProps> = ({
       .map((t) => t.trim())
       .filter(Boolean);
 
+    const activePatId = localDB.getActivePatientId() || localDB.getPatientProfile().id;
+
     const newMemoryItem: MemoryItem = {
       id: `mem-${Date.now()}`,
-      patientId: 'patient-ravi-001',
+      patientId: activePatId,
       title: title.trim(),
       imageUrl: imageUrl || REGIONAL_PHOTO_PRESETS[0].url,
       caption: story.slice(0, 120) || title.trim(),
       fullStory:
         story.trim() ||
-        `This memory was captured in ${location || 'Assam'} around ${eventDateOrYear || 'recent times'}. Cherished time spent with ${peopleTagged || 'family'}.`,
+        `This memory was captured in ${location || 'North East India'} around ${eventDateOrYear || 'recent times'}. Cherished time spent with ${peopleTagged || 'family'}.`,
       peopleTagged: peopleList.length > 0 ? peopleList : [patientName, 'Family'],
       relationship: relationship.trim() || 'Family',
-      location: location.trim() || 'Assam, North East India',
+      location: location.trim() || 'North East India',
       eventDateOrYear: eventDateOrYear.trim() || 'Recent',
-      culturalTags: tagsList.length > 0 ? tagsList : ['Family', 'North East India'],
+      culturalTags: tagsList.length > 0 ? tagsList : ['Family', 'Heritage'],
       verifiedByCaregiver: true,
       isFavorite: true,
       createdDate: new Date().toISOString().split('T')[0],

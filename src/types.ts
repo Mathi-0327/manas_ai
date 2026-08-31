@@ -77,6 +77,7 @@ export interface GameSessionResult {
   abandoned: boolean;
   timestamp: string;
   feedbackText: string;
+  fatigueObserved?: number;
   adaptationApplied?: {
     previousDifficulty: number;
     newDifficulty: number;

@@ -63,20 +63,21 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
 }) => {
   const [showLangMenu, setShowLangMenu] = useState(false);
   const [showCaregiverPinModal, setShowCaregiverPinModal] = useState(false);
-  const [pinInput, setPinInput] = useState('1234');
+  const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState<string | null>(null);
 
   const handleUnlockCaregiver = (e: React.FormEvent) => {
     e.preventDefault();
-    if (pinInput === '1234') {
+    if (pinInput === '2703') {
       audioService.playFeedbackSound('SUCCESS');
       setShowCaregiverPinModal(false);
       setPinError(null);
+      setPinInput('');
       if (onSwitchToCaregiver) {
         onSwitchToCaregiver('CAREGIVER');
       }
     } else {
-      setPinError('Invalid passcode. Use demo passcode: 1234');
+      setPinError('Invalid passcode. Please try again.');
       audioService.playFeedbackSound('GENTLE_TAP');
     }
   };
@@ -304,6 +305,7 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
                     value={pinInput}
                     onChange={(e) => setPinInput(e.target.value)}
                     placeholder="••••"
+                    autoComplete="new-password"
                     className="w-full bg-stone-950 border border-stone-700 focus:border-teal-400 rounded-xl px-4 py-3 text-center text-xl tracking-widest font-mono text-white outline-none"
                     autoFocus
                     required

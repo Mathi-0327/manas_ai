@@ -16,17 +16,27 @@ import { MemoryItem } from '../../types';
 import { localDB } from '../../lib/storage';
 
 interface CaregiverMemoryManagerProps {
+  patientId?: string;
   onMemoryUpdated: () => void;
   networkState: 'ONLINE' | 'OFFLINE' | 'LOW_CONNECTIVITY';
 }
 
 export const CaregiverMemoryManager: React.FC<CaregiverMemoryManagerProps> = ({
+  patientId,
   onMemoryUpdated,
   networkState,
 }) => {
-  const [memories, setMemories] = useState<MemoryItem[]>(() => localDB.getMemories());
+  const activePatId = patientId || localDB.getActivePatientId() || 'patient-ravi-001';
+  const activePatient = (patientId ? localDB.getPatientById(patientId) : null) || localDB.getPatientProfile();
+
+  const [memories, setMemories] = useState<MemoryItem[]>(() => localDB.getMemories(activePatId));
   const [showAddModal, setShowAddModal] = useState(false);
   const [isAnalyzingVision, setIsAnalyzingVision] = useState(false);
+
+  // Sync memories when active patient changes
+  React.useEffect(() => {
+    setMemories(localDB.getMemories(activePatId));
+  }, [activePatId]);
 
   // New Memory Form State
   const [title, setTitle] = useState('');
@@ -52,7 +62,7 @@ export const CaregiverMemoryManager: React.FC<CaregiverMemoryManagerProps> = ({
       const res = await fetch('/api/ai/vision-analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageUrl, userPrompt: 'Family memory for elderly patient in Assam' }),
+        body: JSON.stringify({ imageUrl, userPrompt: `Family memory for ${activePatient.name} in ${activePatient.region}` }),
       });
       const data = await res.json();
       setIsAnalyzingVision(false);
@@ -64,16 +74,16 @@ export const CaregiverMemoryManager: React.FC<CaregiverMemoryManagerProps> = ({
         setCulturalTagsStr(data.suggestedTags.join(', '));
       }
       if (!fullStory && data.suggestedCaption) {
-        setFullStory(`A wonderful family moment in ${data.suggestedLocation || 'Assam'}. ${data.suggestedCaption}`);
+        setFullStory(`A wonderful family moment in ${data.suggestedLocation || activePatient.region}. ${data.suggestedCaption}`);
       }
     } catch {
       setIsAnalyzingVision(false);
-      setTitle('Family Tea Garden Excursion');
-      setLocation('Tezpur, Assam');
-      setEventDateOrYear('April 2022');
-      setCulturalTagsStr('Assam Tea, Family, Nature');
-      setCaption('Peaceful afternoon walk along the green tea bushes');
-      setFullStory('A refreshing afternoon spent strolling through the lush green tea garden estate with family, enjoying warm cardamom tea.');
+      setTitle(`Family Excursion in ${activePatient.region.split(' ')[0]}`);
+      setLocation(activePatient.region);
+      setEventDateOrYear('April 2023');
+      setCulturalTagsStr(`${activePatient.region.split(' ')[0]}, Family, Nature`);
+      setCaption('Peaceful afternoon surrounded by natural heritage');
+      setFullStory(`A refreshing afternoon spent enjoying the peaceful natural scenery with family in ${activePatient.region}.`);
     }
   };
 
@@ -83,21 +93,21 @@ export const CaregiverMemoryManager: React.FC<CaregiverMemoryManagerProps> = ({
 
     const people = peopleTaggedStr
       ? peopleTaggedStr.split(',').map((s) => s.trim()).filter(Boolean)
-      : ['Priyanka Kumar'];
+      : [activePatient.caregiverName || 'Family Member'];
     const tags = culturalTagsStr
       ? culturalTagsStr.split(',').map((s) => s.trim()).filter(Boolean)
-      : ['Family', 'Assam'];
+      : ['Family', activePatient.region.split(' ')[0]];
 
     const newMem: MemoryItem = {
       id: `mem-${Date.now()}`,
-      patientId: 'patient-ravi-001',
+      patientId: activePatId,
       title,
       imageUrl,
       caption: caption || title,
       fullStory,
       peopleTagged: people,
       relationship,
-      location: location || 'Assam, India',
+      location: location || activePatient.region,
       eventDateOrYear: eventDateOrYear || '2023',
       culturalTags: tags,
       verifiedByCaregiver: true,
@@ -106,7 +116,7 @@ export const CaregiverMemoryManager: React.FC<CaregiverMemoryManagerProps> = ({
     };
 
     localDB.saveMemory(newMem);
-    setMemories(localDB.getMemories());
+    setMemories(localDB.getMemories(activePatId));
     setShowAddModal(false);
     onMemoryUpdated();
 

@@ -36,7 +36,10 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
   language,
   patientName,
 }) => {
-  const [reminders, setReminders] = useState<ReminderItem[]>(() => localDB.getReminders());
+  const activePatient = localDB.getPatientProfile();
+  const activePatId = activePatient.id || 'patient-ravi-001';
+
+  const [reminders, setReminders] = useState<ReminderItem[]>(() => localDB.getReminders(activePatId));
   const [selectedFilter, setSelectedFilter] = useState<'ALL' | 'MORNING' | 'AFTERNOON' | 'EVENING' | 'NIGHT' | 'PENDING'>('ALL');
   const [currentTime, setCurrentTime] = useState<string>('');
   
@@ -76,7 +79,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
       // Time is up!
       const triggered: ReminderItem = {
         id: `timer-alert-${Date.now()}`,
-        patientId: 'patient-ravi-001',
+        patientId: activePatId,
         title: timerLabel || 'Scheduled Routine Care Alert',
         type: 'HYDRATION',
         scheduledTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -96,7 +99,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [activeTimerSeconds, timerLabel, patientName]);
+  }, [activeTimerSeconds, timerLabel, patientName, activePatId]);
 
   const handleAcknowledge = (rem: ReminderItem) => {
     audioService.playFeedbackSound('SUCCESS');
@@ -107,7 +110,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
     };
 
     localDB.updateReminder(updated);
-    setReminders(localDB.getReminders());
+    setReminders(localDB.getReminders(activePatId));
     setIsAlertOpen(false);
 
     audioService.speak(`Thank you, ${patientName}. We marked ${rem.title} as completed.`);
@@ -121,7 +124,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
     };
 
     localDB.updateReminder(updated);
-    setReminders(localDB.getReminders());
+    setReminders(localDB.getReminders(activePatId));
     setIsAlertOpen(false);
 
     // Set countdown for snooze alert
@@ -140,7 +143,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
   const handleTriggerTestAlert = (rem?: ReminderItem) => {
     const target = rem || reminders[0] || {
       id: 'test-rem',
-      patientId: 'patient-ravi-001',
+      patientId: activePatId,
       title: 'Time for Morning Warm Water & Vitamin',
       type: 'MEDICATION',
       scheduledTime: '08:15 AM',
@@ -163,8 +166,8 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
   const handleResetToDementiaRoutine = () => {
     audioService.playFeedbackSound('GENTLE_TAP');
     const reset = localDB.resetRemindersToDefault();
-    setReminders(reset);
-    audioService.speak('Reset routine schedule to standard 10-step dementia daily care plan.');
+    setReminders(reset.filter(r => r.patientId === activePatId));
+    audioService.speak('Reset routine schedule to standard dementia daily care plan.');
   };
 
   const handleSaveNewReminder = (e: React.FormEvent) => {
@@ -173,7 +176,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
 
     const item: ReminderItem = {
       id: `rem-custom-${Date.now()}`,
-      patientId: 'patient-ravi-001',
+      patientId: activePatId,
       title: newTitle.trim(),
       type: newType,
       scheduledTime: newScheduledTime,
@@ -184,7 +187,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
     };
 
     localDB.addReminder(item);
-    setReminders(localDB.getReminders());
+    setReminders(localDB.getReminders(activePatId));
     setIsAddModalOpen(false);
 
     // Reset form

@@ -13,25 +13,34 @@ import { CaregiverInstruction } from '../../types';
 import { localDB } from '../../lib/storage';
 
 interface CaregiverInstructionFormProps {
+  patientId?: string;
   onInstructionSaved: () => void;
   networkState: 'ONLINE' | 'OFFLINE' | 'LOW_CONNECTIVITY';
 }
 
 export const CaregiverInstructionForm: React.FC<CaregiverInstructionFormProps> = ({
+  patientId,
   onInstructionSaved,
   networkState,
 }) => {
+  const activePatId = patientId || localDB.getActivePatientId() || 'patient-ravi-001';
+  const activePatient = (patientId ? localDB.getPatientById(patientId) : null) || localDB.getPatientProfile();
+
   const [instructions, setInstructions] = useState<CaregiverInstruction[]>(() =>
-    localDB.getCaregiverInstructions()
+    localDB.getCaregiverInstructions(activePatId)
   );
   const [rawText, setRawText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
+  React.useEffect(() => {
+    setInstructions(localDB.getCaregiverInstructions(activePatId));
+  }, [activePatId]);
+
   const presetExamples = [
-    'He is feeling a bit tired today, please reduce difficult games to an easy pace.',
-    'He loves traditional Assam folk music and Bihu drums. Prefer these cultural themes.',
-    'Schedule memory exercises in the morning and relaxing flute breathing in the evening.',
-    'Keep instructions very brief, warm, and comforting.',
+    `${activePatient.name} is feeling a bit tired today, please reduce difficult games to an easy pace.`,
+    `Prefers traditional ${activePatient.region.split(' ')[0]} folk music and cultural activities.`,
+    `Schedule memory exercises in the morning and relaxing flute breathing in the evening.`,
+    `Keep voice prompts very brief, warm, and comforting in ${activePatient.preferredLanguage.toUpperCase()}.`,
   ];
 
   const handleSubmitInstruction = async (textToSubmit: string) => {
@@ -45,7 +54,7 @@ export const CaregiverInstructionForm: React.FC<CaregiverInstructionFormProps> =
         const lower = textToSubmit.toLowerCase();
         const timeOfDayPref: 'MORNING' | 'AFTERNOON' | 'EVENING' = lower.includes('evening') ? 'EVENING' : lower.includes('afternoon') ? 'AFTERNOON' : 'MORNING';
         const structuredRule = {
-          preferredTheme: lower.includes('music') || lower.includes('bihu') ? 'Bihu Folk & Music' : 'Assam Tea Gardens',
+          preferredTheme: lower.includes('music') || lower.includes('bihu') ? 'Regional Folk & Music' : `${activePatient.region.split(' ')[0]} Heritage`,
           timeOfDayPreference: timeOfDayPref,
           maxDifficulty: lower.includes('tired') || lower.includes('reduce') || lower.includes('easy') ? 2 : 3,
           enableRelaxationAudio: true,
@@ -54,8 +63,9 @@ export const CaregiverInstructionForm: React.FC<CaregiverInstructionFormProps> =
 
         const newInstruction: CaregiverInstruction = {
           id: `inst-${Date.now()}`,
-          patientId: 'patient-ravi-001',
-          caregiverId: 'cg-priyanka-01',
+          patientId: activePatId,
+          caregiverId: `cg-${activePatId}`,
+          authorName: activePatient.caregiverName || 'Family Caregiver',
           rawInstructionText: textToSubmit,
           structuredRule,
           createdAt: new Date().toISOString(),
@@ -63,7 +73,7 @@ export const CaregiverInstructionForm: React.FC<CaregiverInstructionFormProps> =
         };
 
         localDB.saveCaregiverInstruction(newInstruction);
-        setInstructions(localDB.getCaregiverInstructions());
+        setInstructions(localDB.getCaregiverInstructions(activePatId));
         setRawText('');
         onInstructionSaved();
       }, 500);
@@ -80,7 +90,7 @@ export const CaregiverInstructionForm: React.FC<CaregiverInstructionFormProps> =
       setIsProcessing(false);
 
       const structuredRule = data.structuredRule || {
-        preferredTheme: 'Traditional Folk Music & Gardening',
+        preferredTheme: `${activePatient.region.split(' ')[0]} Heritage`,
         timeOfDayPreference: 'MORNING',
         maxDifficulty: 3,
         enableRelaxationAudio: true,
@@ -89,8 +99,9 @@ export const CaregiverInstructionForm: React.FC<CaregiverInstructionFormProps> =
 
       const newInstruction: CaregiverInstruction = {
         id: `inst-${Date.now()}`,
-        patientId: 'patient-ravi-001',
-        caregiverId: 'cg-priyanka-01',
+        patientId: activePatId,
+        caregiverId: `cg-${activePatId}`,
+        authorName: activePatient.caregiverName || 'Family Caregiver',
         rawInstructionText: textToSubmit,
         structuredRule,
         createdAt: new Date().toISOString(),
@@ -98,18 +109,19 @@ export const CaregiverInstructionForm: React.FC<CaregiverInstructionFormProps> =
       };
 
       localDB.saveCaregiverInstruction(newInstruction);
-      setInstructions(localDB.getCaregiverInstructions());
+      setInstructions(localDB.getCaregiverInstructions(activePatId));
       setRawText('');
       onInstructionSaved();
     } catch {
       setIsProcessing(false);
       const fallbackInstruction: CaregiverInstruction = {
         id: `inst-${Date.now()}`,
-        patientId: 'patient-ravi-001',
-        caregiverId: 'cg-priyanka-01',
+        patientId: activePatId,
+        caregiverId: `cg-${activePatId}`,
+        authorName: activePatient.caregiverName || 'Family Caregiver',
         rawInstructionText: textToSubmit,
         structuredRule: {
-          preferredTheme: 'Traditional Assam Heritage',
+          preferredTheme: `${activePatient.region.split(' ')[0]} Heritage`,
           timeOfDayPreference: 'MORNING',
           maxDifficulty: 3,
           enableRelaxationAudio: true,
@@ -119,7 +131,7 @@ export const CaregiverInstructionForm: React.FC<CaregiverInstructionFormProps> =
         appliedStatus: 'ACTIVE',
       };
       localDB.saveCaregiverInstruction(fallbackInstruction);
-      setInstructions(localDB.getCaregiverInstructions());
+      setInstructions(localDB.getCaregiverInstructions(activePatId));
       setRawText('');
       onInstructionSaved();
     }

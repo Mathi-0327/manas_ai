@@ -81,7 +81,7 @@ export default function App() {
     if (active.preferredLanguage) {
       setCurrentLang(active.preferredLanguage);
     }
-    setInstructions(localDB.getCaregiverInstructions());
+    setInstructions(localDB.getCaregiverInstructions(active.id));
     setPendingSyncCount(localDB.getPendingSyncCount());
   }, []);
 

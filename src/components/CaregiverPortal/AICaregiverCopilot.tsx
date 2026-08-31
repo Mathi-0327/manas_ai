@@ -36,13 +36,27 @@ export const AICaregiverCopilot: React.FC<AICaregiverCopilotProps> = ({
 
   const [messages, setMessages] = useState<MessageItem[]>([
     {
-      id: 'msg-init',
+      id: `msg-init-${activePatient.id}`,
       sender: 'COPILOT',
       text: `Namaskar. I am your MANAS AI Caregiver Copilot. I analyze ${activePatient.name}’s cognitive telemetry, memory engagement, and reminder trends to give you clear, actionable caregiving insights. How can I assist you today?`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       source: 'MANAS-Copilot',
     },
   ]);
+
+  React.useEffect(() => {
+    const current = (patientId ? localDB.getPatientById(patientId) : null) || localDB.getPatientProfile();
+    setMessages([
+      {
+        id: `msg-init-${current.id}`,
+        sender: 'COPILOT',
+        text: `Namaskar. I am your MANAS AI Caregiver Copilot. I analyze ${current.name}’s cognitive telemetry, memory engagement, and reminder trends to give you clear, actionable caregiving insights. How can I assist you today?`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        source: 'MANAS-Copilot',
+      },
+    ]);
+  }, [patientId]);
+
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -70,8 +84,8 @@ export const AICaregiverCopilot: React.FC<AICaregiverCopilotProps> = ({
 
     const currentPatient = (patientId ? localDB.getPatientById(patientId) : null) || localDB.getPatientProfile();
     const recentSessions = localDB.getGameSessions(currentPatient.id);
-    const reminders = localDB.getReminders();
-    const observations = localDB.getObservations();
+    const reminders = localDB.getReminders(currentPatient.id);
+    const observations = localDB.getObservations(currentPatient.id);
 
     const telemetryContext = {
       patient: currentPatient,

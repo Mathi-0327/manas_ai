@@ -33,8 +33,14 @@ export const MemoryVaultView: React.FC<MemoryVaultViewProps> = ({
   patientName,
   networkState,
 }) => {
-  const [memories, setMemories] = useState<MemoryItem[]>(() => localDB.getMemories());
-  const [selectedMemory, setSelectedMemory] = useState<MemoryItem | null>(memories[0] || null);
+  const activePatient = localDB.getPatientProfile();
+  const activePatId = activePatient.id || 'patient-ravi-001';
+
+  const [memories, setMemories] = useState<MemoryItem[]>(() => localDB.getMemories(activePatId));
+  const [selectedMemory, setSelectedMemory] = useState<MemoryItem | null>(() => {
+    const list = localDB.getMemories(activePatId);
+    return list[0] || null;
+  });
   const [ragQuery, setRagQuery] = useState('');
   const [ragAnswer, setRagAnswer] = useState('');
   const [isLoadingRag, setIsLoadingRag] = useState(false);
@@ -49,22 +55,26 @@ export const MemoryVaultView: React.FC<MemoryVaultViewProps> = ({
 
   const handleSaveNewMemory = (newMemory: MemoryItem) => {
     // 1. Save to local storage DB
-    localDB.addMemory(newMemory);
-    localDB.enqueueEvent('MEMORY_CREATED', { ...newMemory }, 'patient-ravi-001');
+    const memoryWithId: MemoryItem = {
+      ...newMemory,
+      patientId: activePatId,
+    };
+    localDB.addMemory(memoryWithId);
+    localDB.enqueueEvent('MEMORY_CREATED', { ...memoryWithId }, activePatId);
 
     // 2. Synchronize to server if online
     if (networkState === 'ONLINE') {
       fetch('/api/memories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newMemory),
+        body: JSON.stringify(memoryWithId),
       }).catch((err) => console.warn('Background memory sync failed:', err));
     }
 
     // 3. Update view state
-    const updatedList = [newMemory, ...memories.filter((m) => m.id !== newMemory.id)];
+    const updatedList = [memoryWithId, ...memories.filter((m) => m.id !== memoryWithId.id)];
     setMemories(updatedList);
-    setSelectedMemory(newMemory);
+    setSelectedMemory(memoryWithId);
     setRagAnswer('');
   };
 
@@ -102,7 +112,9 @@ export const MemoryVaultView: React.FC<MemoryVaultViewProps> = ({
             q.includes('who') ||
             q.includes('kaziranga') ||
             q.includes('bihu') ||
-            q.includes('ananya')
+            q.includes('ananya') ||
+            q.includes('shillong') ||
+            q.includes('tea')
         ) || selectedMemory;
 
         const ans = found
@@ -119,7 +131,7 @@ export const MemoryVaultView: React.FC<MemoryVaultViewProps> = ({
       const res = await fetch('/api/ai/memory-rag', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: queryText, patientId: 'patient-ravi-001' }),
+        body: JSON.stringify({ query: queryText, patientId: activePatId }),
       });
       const data = await res.json();
       setIsLoadingRag(false);

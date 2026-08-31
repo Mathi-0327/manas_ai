@@ -129,6 +129,7 @@ export const DEFAULT_PATIENTS: PatientProfile[] = [
 export const DEFAULT_PATIENT = DEFAULT_PATIENTS[0];
 
 export const INITIAL_MEMORIES: MemoryItem[] = [
+  // 1. Ravi Kumar (Assam)
   {
     id: 'mem-1',
     patientId: 'patient-ravi-001',
@@ -177,9 +178,62 @@ export const INITIAL_MEMORIES: MemoryItem[] = [
     isFavorite: false,
     createdDate: '2022-10-20',
   },
+
+  // 2. Maya Devi (Meghalaya)
+  {
+    id: 'mem-maya-1',
+    patientId: 'patient-maya-002',
+    title: 'Ward’s Lake Morning Garden Walk',
+    imageUrl: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&auto=format&fit=crop&q=80',
+    caption: 'Walking across the wooden bridge surrounded by blooming cherry blossoms in Shillong',
+    fullStory: 'Maya loved morning walks around Ward’s Lake with her son Anil. The crisp hill air and pine scents always brought peace and joy. You fed the ducks together and enjoyed warm tea at the lakeside cafe.',
+    peopleTagged: ['Maya Devi', 'Anil Devi (Son)'],
+    relationship: 'Family Excursion',
+    location: 'Shillong, Meghalaya',
+    eventDateOrYear: 'March 2023',
+    culturalTags: ['Shillong', 'Wards Lake', 'Pine Trees', 'Gardening'],
+    verifiedByCaregiver: true,
+    isFavorite: true,
+    createdDate: '2023-03-20',
+  },
+  {
+    id: 'mem-maya-2',
+    patientId: 'patient-maya-002',
+    title: 'Traditional Khasi Handloom Weaving',
+    imageUrl: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=800&auto=format&fit=crop&q=80',
+    caption: 'Handweaving intricate traditional geometric shawls on the wooden porch loom',
+    fullStory: 'Maya has been an artisan weaver for over 40 years. Her mastery of natural dyes and floral motifs is cherished across the village. She taught her daughter-in-law the heritage diamond warp technique.',
+    peopleTagged: ['Maya Devi', 'Daughter-in-law Sunita'],
+    relationship: 'Cultural Craft',
+    location: 'Smit Village, Meghalaya',
+    eventDateOrYear: 'October 2022',
+    culturalTags: ['Weaving', 'Khasi Heritage', 'Handloom', 'Silk'],
+    verifiedByCaregiver: true,
+    isFavorite: true,
+    createdDate: '2022-10-10',
+  },
+
+  // 3. Biren Barua (Jorhat, Assam)
+  {
+    id: 'mem-biren-1',
+    patientId: 'patient-biren-003',
+    title: 'Jorhat Tea Estate Morning Plucking',
+    imageUrl: 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=800&auto=format&fit=crop&q=80',
+    caption: 'Inspecting fresh golden two-leaves-and-a-bud harvest at sunrise in Jorhat',
+    fullStory: 'Biren spent 35 years managing the heritage tea gardens of Jorhat. His knowledge of monsoon rains, soil scents, and tea processing is extraordinary. He loved walking along the misty rows every sunrise.',
+    peopleTagged: ['Biren Barua', 'Mridul Barua (Son)'],
+    relationship: 'Career & Life',
+    location: 'Jorhat Tea Estate, Assam',
+    eventDateOrYear: 'August 2021',
+    culturalTags: ['Tea Gardens', 'Jorhat', 'Sunrise', 'Heritage'],
+    verifiedByCaregiver: true,
+    isFavorite: true,
+    createdDate: '2021-08-18',
+  },
 ];
 
 export const INITIAL_REMINDERS: ReminderItem[] = [
+  // Ravi Kumar Reminders
   {
     id: 'rem-1',
     patientId: 'patient-ravi-001',
@@ -237,60 +291,79 @@ export const INITIAL_REMINDERS: ReminderItem[] = [
     status: 'PENDING',
     voicePromptText: 'Lunch is served, Ravi. Enjoy your meal with family and take a peaceful rest.',
   },
+
+  // Maya Devi Reminders
   {
-    id: 'rem-6',
-    patientId: 'patient-ravi-001',
-    title: 'Afternoon Hydration & Courtyard Stretch',
+    id: 'rem-maya-1',
+    patientId: 'patient-maya-002',
+    title: 'Morning Pine Hill Balcony Air & Warm Water',
     type: 'HYDRATION',
-    scheduledTime: '03:30 PM',
-    timeOfDay: 'AFTERNOON',
-    dosageOrInstruction: 'Drink a glass of water or fresh lime water; gentle 5-minute garden walk',
-    status: 'PENDING',
-    voicePromptText: 'Afternoon refreshment time! Drink a cup of water and take a gentle stroll in the courtyard.',
+    scheduledTime: '07:00 AM',
+    timeOfDay: 'MORNING',
+    dosageOrInstruction: 'Drink 1 glass of warm lemon water and enjoy fresh Shillong morning breeze',
+    status: 'ACKNOWLEDGED',
+    acknowledgedAt: new Date(Date.now() - 1000 * 60 * 200).toISOString(),
+    voicePromptText: 'Khublei Maya! Please drink your morning warm water and enjoy the peaceful hills.',
   },
   {
-    id: 'rem-7',
-    patientId: 'patient-ravi-001',
-    title: 'Family Reminiscence & Photo Album Time',
-    type: 'ACTIVITY',
-    scheduledTime: '05:00 PM',
-    timeOfDay: 'EVENING',
-    dosageOrInstruction: 'Browse Tezpur and Shillong family memories album with your daughter Priyanka',
-    status: 'PENDING',
-    voicePromptText: 'Let us look at your lovely family photo memories and cherish happy times together.',
-  },
-  {
-    id: 'rem-8',
-    patientId: 'patient-ravi-001',
-    title: 'Sundowning Calming Flute & Warm Lights',
-    type: 'ROUTINE',
-    scheduledTime: '06:30 PM',
-    timeOfDay: 'EVENING',
-    dosageOrInstruction: 'Turn on warm ambient lighting and listen to 10 minutes of peaceful flute melody to soothe the mind',
-    status: 'PENDING',
-    voicePromptText: 'The evening sunset is here. Let us listen to soothing flute music and relax peacefully.',
-  },
-  {
-    id: 'rem-9',
-    patientId: 'patient-ravi-001',
-    title: 'Evening Dinner Tablet with Warm Water',
+    id: 'rem-maya-2',
+    patientId: 'patient-maya-002',
+    title: 'Morning Blood Pressure Tablet with Breakfast',
     type: 'MEDICATION',
-    scheduledTime: '08:15 PM',
-    timeOfDay: 'EVENING',
-    dosageOrInstruction: '1 evening tablet after dinner with warm water',
-    status: 'PENDING',
-    voicePromptText: 'Ravi, dinner time is complete. Please take your evening tablet with warm water.',
+    scheduledTime: '08:30 AM',
+    timeOfDay: 'MORNING',
+    dosageOrInstruction: '1 tablet after breakfast with water',
+    status: 'ACKNOWLEDGED',
+    acknowledgedAt: new Date(Date.now() - 1000 * 60 * 110).toISOString(),
+    voicePromptText: 'Maya, time for your morning health tablet with fresh water.',
   },
   {
-    id: 'rem-10',
-    patientId: 'patient-ravi-001',
-    title: 'Bedtime Routine & Night Safety Check',
-    type: 'ROUTINE',
-    scheduledTime: '09:30 PM',
-    timeOfDay: 'NIGHT',
-    dosageOrInstruction: 'Warm cup of turmeric milk, bathroom check, soft nightlight on for safe peaceful sleep',
+    id: 'rem-maya-3',
+    patientId: 'patient-maya-002',
+    title: 'Courtyard Weaving Patterns & Memory Exercise',
+    type: 'ACTIVITY',
+    scheduledTime: '10:30 AM',
+    timeOfDay: 'MORNING',
+    dosageOrInstruction: '5-minute Level 3 pattern sequencing and floral memory game',
     status: 'PENDING',
-    voicePromptText: 'Time to prepare for a restful sleep. Drink warm milk, check the nightlight, and sleep peacefully.',
+    voicePromptText: 'Time for your morning pattern game and handloom exercises!',
+  },
+
+  // Biren Barua Reminders
+  {
+    id: 'rem-biren-1',
+    patientId: 'patient-biren-003',
+    title: 'Morning Warm Water & Balcony Sunlight',
+    type: 'HYDRATION',
+    scheduledTime: '07:15 AM',
+    timeOfDay: 'MORNING',
+    dosageOrInstruction: 'Drink 1 glass warm water and view garden plants',
+    status: 'ACKNOWLEDGED',
+    acknowledgedAt: new Date(Date.now() - 1000 * 60 * 240).toISOString(),
+    voicePromptText: 'Biren koka, please have a refreshing glass of warm water.',
+  },
+  {
+    id: 'rem-biren-2',
+    patientId: 'patient-biren-003',
+    title: 'Morning Memory & Heart Tablet',
+    type: 'MEDICATION',
+    scheduledTime: '08:00 AM',
+    timeOfDay: 'MORNING',
+    dosageOrInstruction: '1 tablet after morning tea',
+    status: 'ACKNOWLEDGED',
+    acknowledgedAt: new Date(Date.now() - 1000 * 60 * 150).toISOString(),
+    voicePromptText: 'Time for your morning tablet with water after tea.',
+  },
+  {
+    id: 'rem-biren-3',
+    patientId: 'patient-biren-003',
+    title: 'Tea Garden Memory Match & Story',
+    type: 'ACTIVITY',
+    scheduledTime: '10:00 AM',
+    timeOfDay: 'MORNING',
+    dosageOrInstruction: 'Gentle 5-minute tea card matching and audio recall',
+    status: 'PENDING',
+    voicePromptText: 'Time for a peaceful 5-minute memory game with tea garden cards.',
   },
 ];
 
@@ -310,10 +383,43 @@ export const INITIAL_INSTRUCTIONS: CaregiverInstruction[] = [
     appliedStatus: 'ACTIVE',
     createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
     aiInterpretationNotes: 'Adapted daily schedule to prioritize memory card matching at 10 AM and soothing folk audio in the late afternoon.',
-  }
+  },
+  {
+    id: 'inst-maya-1',
+    patientId: 'patient-maya-002',
+    authorName: 'Anil Devi (Son)',
+    rawInstructionText: 'She excels at intricate weaving patterns and floral designs. Suggest Level 3 pattern sequencing in the morning and soothing choral hymns at sunset.',
+    structuredRule: {
+      preferredTheme: 'Traditional Handloom Weaving & Flora',
+      timeOfDayPreference: 'MORNING',
+      maxDifficulty: 4,
+      enableRelaxationAudio: true,
+      toneStyle: 'WARM_ENCOURAGING',
+    },
+    appliedStatus: 'ACTIVE',
+    createdAt: new Date(Date.now() - 86400000 * 3).toISOString(),
+    aiInterpretationNotes: 'Set active difficulty level to 3 with Khasi handloom theme prioritization.',
+  },
+  {
+    id: 'inst-biren-1',
+    patientId: 'patient-biren-003',
+    authorName: 'Mridul Barua (Son)',
+    rawInstructionText: 'Prefers Assamese audio cueing. Keep cognitive activities under 10 minutes to avoid afternoon mental fatigue.',
+    structuredRule: {
+      preferredTheme: 'Jorhat Tea Estate & Folk Stories',
+      timeOfDayPreference: 'MORNING',
+      maxDifficulty: 2,
+      enableRelaxationAudio: true,
+      toneStyle: 'WARM_ENCOURAGING',
+    },
+    appliedStatus: 'ACTIVE',
+    createdAt: new Date(Date.now() - 86400000 * 1).toISOString(),
+    aiInterpretationNotes: 'Difficulty capped at Level 2 with enhanced audio assistance.',
+  },
 ];
 
 export const INITIAL_OBSERVATIONS: AIObservation[] = [
+  // Ravi Kumar
   {
     id: 'obs-1',
     patientId: 'patient-ravi-001',
@@ -351,7 +457,169 @@ export const INITIAL_OBSERVATIONS: AIObservation[] = [
       baselineValue: '3.0s',
       deviation: '+1.1s variance (Normal daily fluctuation)',
     }
+  },
+
+  // Maya Devi
+  {
+    id: 'obs-maya-1',
+    patientId: 'patient-maya-002',
+    category: 'PATTERN_ACTIVITY',
+    title: 'High Precision on Geometric Weaving Sequence',
+    observation: 'Maya achieved 94% accuracy on Level 3 pattern sequencing with rapid 2.4s response times.',
+    explainabilityReason: 'Strong cognitive retention in spatial and visual domain linked to long-term artisan craft experience.',
+    dataSources: ['GameSession: pattern-khasi-01', 'GameSession: pattern-khasi-02'],
+    confidenceScore: 0.95,
+    priority: 'INFO',
+    isClinicalDiagnosis: false,
+    timestamp: new Date(Date.now() - 3600000 * 4).toISOString(),
+    metricsComparison: {
+      metricName: 'Pattern Accuracy',
+      recentValue: '94%',
+      baselineValue: '88%',
+      deviation: '+6% above baseline',
+    }
+  },
+
+  // Biren Barua
+  {
+    id: 'obs-biren-1',
+    patientId: 'patient-biren-003',
+    category: 'MEMORY_ACTIVITY',
+    title: 'Stable Response Latency on Historical Tea Garden Cards',
+    observation: 'Biren demonstrated 72% accuracy on tea heritage matching with consistent focus and zero signs of agitation.',
+    explainabilityReason: 'Engaging autobiographical memories provides grounding and lowers cognitive fatigue.',
+    dataSources: ['GameSession: memory-tea-01'],
+    confidenceScore: 0.88,
+    priority: 'INFO',
+    isClinicalDiagnosis: false,
+    timestamp: new Date(Date.now() - 3600000 * 6).toISOString(),
+    metricsComparison: {
+      metricName: 'Memory Recall',
+      recentValue: '72%',
+      baselineValue: '65%',
+      deviation: '+7% improvement',
+    }
   }
+];
+
+export const INITIAL_GAME_SESSIONS: GameSessionResult[] = [
+  // Ravi Kumar Sessions
+  {
+    sessionId: 'sess-ravi-01',
+    patientId: 'patient-ravi-001',
+    gameId: 'Pattern Weave Match',
+    category: 'PATTERN',
+    difficulty: 2,
+    score: 88,
+    accuracyPercent: 88,
+    avgResponseTimeMs: 2400,
+    totalAttempts: 1,
+    completed: true,
+    abandoned: false,
+    feedbackText: 'Excellent precision on regional weave completion',
+    fatigueObserved: 12,
+    timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
+  },
+  {
+    sessionId: 'sess-ravi-02',
+    patientId: 'patient-ravi-001',
+    gameId: 'Cultural Card Memory',
+    category: 'MEMORY',
+    difficulty: 2,
+    score: 82,
+    accuracyPercent: 82,
+    avgResponseTimeMs: 3100,
+    totalAttempts: 1,
+    completed: true,
+    abandoned: false,
+    feedbackText: 'Strong recognition of family and nature cards',
+    fatigueObserved: 18,
+    timestamp: new Date(Date.now() - 3600000 * 6).toISOString(),
+  },
+  {
+    sessionId: 'sess-ravi-03',
+    patientId: 'patient-ravi-001',
+    gameId: 'Bihu Rhythm Sequence',
+    category: 'ROUTINE',
+    difficulty: 2,
+    score: 90,
+    accuracyPercent: 90,
+    avgResponseTimeMs: 2200,
+    totalAttempts: 1,
+    completed: true,
+    abandoned: false,
+    feedbackText: 'Fluid rhythm following and cheerful engagement',
+    fatigueObserved: 10,
+    timestamp: new Date(Date.now() - 3600000 * 24).toISOString(),
+  },
+
+  // Maya Devi Sessions
+  {
+    sessionId: 'sess-maya-01',
+    patientId: 'patient-maya-002',
+    gameId: 'Pine Hill Flora Match',
+    category: 'MEMORY',
+    difficulty: 3,
+    score: 92,
+    accuracyPercent: 92,
+    avgResponseTimeMs: 2600,
+    totalAttempts: 1,
+    completed: true,
+    abandoned: false,
+    feedbackText: 'Rapid and accurate botanical card recall',
+    fatigueObserved: 8,
+    timestamp: new Date(Date.now() - 3600000 * 3).toISOString(),
+  },
+  {
+    sessionId: 'sess-maya-02',
+    patientId: 'patient-maya-002',
+    gameId: 'Khasi Weaving Pattern',
+    category: 'PATTERN',
+    difficulty: 3,
+    score: 94,
+    accuracyPercent: 94,
+    avgResponseTimeMs: 2400,
+    totalAttempts: 1,
+    completed: true,
+    abandoned: false,
+    feedbackText: 'Outstanding geometric handloom sequencing',
+    fatigueObserved: 10,
+    timestamp: new Date(Date.now() - 3600000 * 8).toISOString(),
+  },
+
+  // Biren Barua Sessions
+  {
+    sessionId: 'sess-biren-01',
+    patientId: 'patient-biren-003',
+    gameId: 'Tea Garden Object Sort',
+    category: 'ATTENTION',
+    difficulty: 2,
+    score: 72,
+    accuracyPercent: 72,
+    avgResponseTimeMs: 3600,
+    totalAttempts: 1,
+    completed: true,
+    abandoned: false,
+    feedbackText: 'Steady attention sustained throughout the sorting task',
+    fatigueObserved: 22,
+    timestamp: new Date(Date.now() - 3600000 * 4).toISOString(),
+  },
+  {
+    sessionId: 'sess-biren-02',
+    patientId: 'patient-biren-003',
+    gameId: 'Kaziranga Wildlife Match',
+    category: 'MEMORY',
+    difficulty: 2,
+    score: 68,
+    accuracyPercent: 68,
+    avgResponseTimeMs: 3900,
+    totalAttempts: 1,
+    completed: true,
+    abandoned: false,
+    feedbackText: 'Enjoyed animal imagery with calm pace',
+    fatigueObserved: 26,
+    timestamp: new Date(Date.now() - 3600000 * 10).toISOString(),
+  },
 ];
 
 class LocalStorageEngine {
@@ -595,15 +863,73 @@ class LocalStorageEngine {
 
   // Game Sessions
   public getGameSessions(patientId?: string): GameSessionResult[] {
-    if (!this.isBrowser()) return [];
-    const data = localStorage.getItem(STORAGE_KEYS.GAME_SESSIONS);
-    if (!data) return [];
-    try {
-      const all: GameSessionResult[] = JSON.parse(data);
-      return patientId ? all.filter(s => s.patientId === patientId) : all;
-    } catch {
-      return [];
+    if (!this.isBrowser()) {
+      return patientId ? INITIAL_GAME_SESSIONS.filter(s => s.patientId === patientId) : INITIAL_GAME_SESSIONS;
     }
+    const data = localStorage.getItem(STORAGE_KEYS.GAME_SESSIONS);
+    let all: GameSessionResult[];
+    if (!data) {
+      this.saveInitialGameSessions();
+      all = INITIAL_GAME_SESSIONS;
+    } else {
+      try {
+        all = JSON.parse(data);
+        if (!Array.isArray(all) || all.length === 0) {
+          this.saveInitialGameSessions();
+          all = INITIAL_GAME_SESSIONS;
+        }
+      } catch {
+        all = INITIAL_GAME_SESSIONS;
+      }
+    }
+
+    if (!patientId) return all;
+    const match = all.filter(s => s.patientId === patientId);
+    if (match.length > 0) return match;
+
+    // Fallback: Generate calibrated sessions for newly created patients based on their baseline
+    const patient = this.getPatientById(patientId);
+    const baseScore = patient?.baseline?.memoryScore || 78;
+    const baseLatency = patient?.baseline?.responseSpeedMs || 2800;
+    return [
+      {
+        sessionId: `sess-${patientId}-01`,
+        patientId,
+        gameId: 'Cultural Card Memory',
+        category: 'MEMORY',
+        difficulty: patient?.currentDifficultyLevel || 2,
+        score: baseScore,
+        accuracyPercent: baseScore,
+        avgResponseTimeMs: baseLatency,
+        totalAttempts: 1,
+        completed: true,
+        abandoned: false,
+        feedbackText: 'Steady memory recall pace',
+        fatigueObserved: 10,
+        timestamp: new Date(Date.now() - 3600000 * 3).toISOString(),
+      },
+      {
+        sessionId: `sess-${patientId}-02`,
+        patientId,
+        gameId: 'Pattern Weave Match',
+        category: 'PATTERN',
+        difficulty: patient?.currentDifficultyLevel || 2,
+        score: Math.min(100, baseScore + 6),
+        accuracyPercent: Math.min(100, baseScore + 6),
+        avgResponseTimeMs: Math.max(1800, baseLatency - 400),
+        totalAttempts: 1,
+        completed: true,
+        abandoned: false,
+        feedbackText: 'Strong visual sequencing',
+        fatigueObserved: 12,
+        timestamp: new Date(Date.now() - 3600000 * 20).toISOString(),
+      },
+    ];
+  }
+
+  private saveInitialGameSessions(): void {
+    if (!this.isBrowser()) return;
+    localStorage.setItem(STORAGE_KEYS.GAME_SESSIONS, JSON.stringify(INITIAL_GAME_SESSIONS));
   }
 
   public saveGameSession(session: GameSessionResult): void {
@@ -621,18 +947,52 @@ class LocalStorageEngine {
   }
 
   // Memories
-  public getMemories(): MemoryItem[] {
-    if (!this.isBrowser()) return INITIAL_MEMORIES;
-    const data = localStorage.getItem(STORAGE_KEYS.LOCAL_MEMORIES);
-    if (!data) {
-      this.saveMemories(INITIAL_MEMORIES);
-      return INITIAL_MEMORIES;
+  public getMemories(patientId?: string): MemoryItem[] {
+    let all: MemoryItem[];
+    if (!this.isBrowser()) {
+      all = INITIAL_MEMORIES;
+    } else {
+      const data = localStorage.getItem(STORAGE_KEYS.LOCAL_MEMORIES);
+      if (!data) {
+        this.saveMemories(INITIAL_MEMORIES);
+        all = INITIAL_MEMORIES;
+      } else {
+        try {
+          all = JSON.parse(data);
+          if (!Array.isArray(all) || all.length === 0) {
+            this.saveMemories(INITIAL_MEMORIES);
+            all = INITIAL_MEMORIES;
+          }
+        } catch {
+          all = INITIAL_MEMORIES;
+        }
+      }
     }
-    try {
-      return JSON.parse(data);
-    } catch {
-      return INITIAL_MEMORIES;
-    }
+
+    if (!patientId) return all;
+    const match = all.filter((m) => m.patientId === patientId);
+    if (match.length > 0) return match;
+
+    // Fallback starting memory for newly registered patient
+    const p = this.getPatientById(patientId);
+    return [
+      {
+        id: `mem-${patientId}-init`,
+        patientId,
+        title: `${p?.region.split(' ')[0] || 'Home'} Family Gathering`,
+        imageUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=800&auto=format&fit=crop&q=80',
+        caption: `Cherished family moments in ${p?.region || 'North East India'}`,
+        fullStory: `A serene memory celebrating with loved ones in ${p?.region || 'your hometown'}. Family smiles, warm tea, and joyful conversations.`,
+        peopleTagged: [p?.name || 'Elder', p?.caregiverName || 'Family'],
+        relationship: 'Family',
+        location: p?.region || 'North East India',
+        eventDateOrYear: '2023',
+        culturalTags: ['Family', 'Heritage', 'Celebration'],
+        verifiedByCaregiver: true,
+        isFavorite: true,
+        createdDate: new Date().toISOString().split('T')[0],
+      },
+    ];
   }
 
   public saveMemories(memories: MemoryItem[]): void {
@@ -647,24 +1007,85 @@ class LocalStorageEngine {
   }
 
   // Reminders
-  public getReminders(): ReminderItem[] {
-    if (!this.isBrowser()) return INITIAL_REMINDERS;
-    const data = localStorage.getItem(STORAGE_KEYS.LOCAL_REMINDERS);
-    if (!data) {
-      this.saveReminders(INITIAL_REMINDERS);
-      return INITIAL_REMINDERS;
-    }
-    try {
-      const parsed: ReminderItem[] = JSON.parse(data);
-      if (Array.isArray(parsed) && parsed.length >= 6) {
-        return parsed;
+  public getReminders(patientId?: string): ReminderItem[] {
+    let all: ReminderItem[];
+    if (!this.isBrowser()) {
+      all = INITIAL_REMINDERS;
+    } else {
+      const data = localStorage.getItem(STORAGE_KEYS.LOCAL_REMINDERS);
+      if (!data) {
+        this.saveReminders(INITIAL_REMINDERS);
+        all = INITIAL_REMINDERS;
+      } else {
+        try {
+          const parsed: ReminderItem[] = JSON.parse(data);
+          if (Array.isArray(parsed) && parsed.length >= 3) {
+            all = parsed;
+          } else {
+            this.saveReminders(INITIAL_REMINDERS);
+            all = INITIAL_REMINDERS;
+          }
+        } catch {
+          all = INITIAL_REMINDERS;
+        }
       }
-      // Upgrade older sparse list to full dementia routine
-      this.saveReminders(INITIAL_REMINDERS);
-      return INITIAL_REMINDERS;
-    } catch {
-      return INITIAL_REMINDERS;
     }
+
+    if (!patientId) return all;
+    const match = all.filter((r) => r.patientId === patientId);
+    if (match.length > 0) return match;
+
+    // Generate tailored reminders for new patient
+    const p = this.getPatientById(patientId);
+    const firstName = p?.name.split(' ')[0] || 'Dear friend';
+    return [
+      {
+        id: `rem-${patientId}-1`,
+        patientId,
+        title: 'Morning Hydration & Sunlight',
+        type: 'HYDRATION',
+        scheduledTime: '07:30 AM',
+        timeOfDay: 'MORNING',
+        dosageOrInstruction: 'Drink 1 glass of fresh water and enjoy the morning garden air',
+        status: 'ACKNOWLEDGED',
+        acknowledgedAt: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
+        voicePromptText: `Good morning ${firstName}! Please drink a cup of fresh water.`,
+      },
+      {
+        id: `rem-${patientId}-2`,
+        patientId,
+        title: 'Morning Health Tablet & Breakfast',
+        type: 'MEDICATION',
+        scheduledTime: '08:30 AM',
+        timeOfDay: 'MORNING',
+        dosageOrInstruction: '1 tablet after breakfast with warm water',
+        status: 'ACKNOWLEDGED',
+        acknowledgedAt: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+        voicePromptText: `${firstName}, time for your morning health tablet with water.`,
+      },
+      {
+        id: `rem-${patientId}-3`,
+        patientId,
+        title: 'Morning 5-Minute Memory Card Puzzle',
+        type: 'ACTIVITY',
+        scheduledTime: '10:00 AM',
+        timeOfDay: 'MORNING',
+        dosageOrInstruction: 'Engage with daily cultural card matching',
+        status: 'PENDING',
+        voicePromptText: `Time for your fun morning memory matching game!`,
+      },
+      {
+        id: `rem-${patientId}-4`,
+        patientId,
+        title: 'Mid-Day Lunch & Quiet Rest',
+        type: 'ROUTINE',
+        scheduledTime: '01:00 PM',
+        timeOfDay: 'AFTERNOON',
+        dosageOrInstruction: 'Enjoy a warm balanced meal followed by a peaceful afternoon rest',
+        status: 'PENDING',
+        voicePromptText: `Lunch is ready, ${firstName}. Enjoy your meal with family.`,
+      },
+    ];
   }
 
   public saveReminders(reminders: ReminderItem[]): void {
@@ -688,7 +1109,7 @@ class LocalStorageEngine {
     }
     this.saveReminders(list);
     if (updated.status === 'ACKNOWLEDGED') {
-      this.enqueueEvent('REMINDER_ACKNOWLEDGED', { reminderId: updated.id, title: updated.title });
+      this.enqueueEvent('REMINDER_ACKNOWLEDGED', { reminderId: updated.id, title: updated.title }, updated.patientId);
     }
   }
 
@@ -704,8 +1125,10 @@ class LocalStorageEngine {
 
   public updateReminderStatus(id: string, status: ReminderItem['status']): void {
     const list = this.getReminders();
+    let targetPatientId = 'patient-ravi-001';
     const updated = list.map(r => {
       if (r.id === id) {
+        targetPatientId = r.patientId;
         return {
           ...r,
           status,
@@ -717,25 +1140,37 @@ class LocalStorageEngine {
     this.saveReminders(updated);
 
     if (status === 'ACKNOWLEDGED') {
-      this.enqueueEvent('REMINDER_ACKNOWLEDGED', { reminderId: id });
+      this.enqueueEvent('REMINDER_ACKNOWLEDGED', { reminderId: id }, targetPatientId);
     } else if (status === 'SKIPPED') {
-      this.enqueueEvent('REMINDER_SKIPPED', { reminderId: id });
+      this.enqueueEvent('REMINDER_SKIPPED', { reminderId: id }, targetPatientId);
     }
   }
 
   // Caregiver Instructions
-  public getCaregiverInstructions(): CaregiverInstruction[] {
-    if (!this.isBrowser()) return INITIAL_INSTRUCTIONS;
-    const data = localStorage.getItem(STORAGE_KEYS.CAREGIVER_INSTRUCTIONS);
-    if (!data) {
-      this.saveCaregiverInstructions(INITIAL_INSTRUCTIONS);
-      return INITIAL_INSTRUCTIONS;
+  public getCaregiverInstructions(patientId?: string): CaregiverInstruction[] {
+    let all: CaregiverInstruction[];
+    if (!this.isBrowser()) {
+      all = INITIAL_INSTRUCTIONS;
+    } else {
+      const data = localStorage.getItem(STORAGE_KEYS.CAREGIVER_INSTRUCTIONS);
+      if (!data) {
+        this.saveCaregiverInstructions(INITIAL_INSTRUCTIONS);
+        all = INITIAL_INSTRUCTIONS;
+      } else {
+        try {
+          all = JSON.parse(data);
+          if (!Array.isArray(all) || all.length === 0) {
+            this.saveCaregiverInstructions(INITIAL_INSTRUCTIONS);
+            all = INITIAL_INSTRUCTIONS;
+          }
+        } catch {
+          all = INITIAL_INSTRUCTIONS;
+        }
+      }
     }
-    try {
-      return JSON.parse(data);
-    } catch {
-      return INITIAL_INSTRUCTIONS;
-    }
+
+    if (!patientId) return all;
+    return all.filter((i) => i.patientId === patientId);
   }
 
   public saveCaregiverInstructions(instructions: CaregiverInstruction[]): void {
@@ -747,26 +1182,86 @@ class LocalStorageEngine {
     const list = this.getCaregiverInstructions();
     list.unshift(inst);
     this.saveCaregiverInstructions(list);
-    this.enqueueEvent('CAREGIVER_INSTRUCTION_ADDED', { ...inst });
+    this.enqueueEvent('CAREGIVER_INSTRUCTION_ADDED', { ...inst }, inst.patientId);
   }
 
   // AI Observations
-  public getAIObservations(): AIObservation[] {
-    if (!this.isBrowser()) return INITIAL_OBSERVATIONS;
-    const data = localStorage.getItem(STORAGE_KEYS.AI_OBSERVATIONS);
-    if (!data) {
-      this.saveAIObservations(INITIAL_OBSERVATIONS);
-      return INITIAL_OBSERVATIONS;
+  public getAIObservations(patientId?: string): AIObservation[] {
+    let all: AIObservation[];
+    if (!this.isBrowser()) {
+      all = INITIAL_OBSERVATIONS;
+    } else {
+      const data = localStorage.getItem(STORAGE_KEYS.AI_OBSERVATIONS);
+      if (!data) {
+        this.saveAIObservations(INITIAL_OBSERVATIONS);
+        all = INITIAL_OBSERVATIONS;
+      } else {
+        try {
+          all = JSON.parse(data);
+          if (!Array.isArray(all) || all.length === 0) {
+            this.saveAIObservations(INITIAL_OBSERVATIONS);
+            all = INITIAL_OBSERVATIONS;
+          }
+        } catch {
+          all = INITIAL_OBSERVATIONS;
+        }
+      }
     }
-    try {
-      return JSON.parse(data);
-    } catch {
-      return INITIAL_OBSERVATIONS;
-    }
+
+    if (!patientId) return all;
+    const match = all.filter((o) => o.patientId === patientId);
+    if (match.length > 0) return match;
+
+    // Generate observations based on the specific patient's baseline
+    const p = this.getPatientById(patientId);
+    const patScore = p?.baseline?.patternScore || 80;
+    const memScore = p?.baseline?.memoryScore || 75;
+    const latSec = p?.baseline?.responseSpeedMs ? (p.baseline.responseSpeedMs / 1000).toFixed(1) : '3.0';
+
+    return [
+      {
+        id: `obs-${patientId}-1`,
+        patientId,
+        category: 'PATTERN_ACTIVITY',
+        title: `Consistent Focus on ${p?.region.split(' ')[0] || 'Regional'} Cultural Matching`,
+        observation: `${p?.name || 'Patient'} showed ${patScore}% accuracy on visual pattern activities with an average response speed of ${latSec}s.`,
+        explainabilityReason: `Calculated from calibrated baseline telemetry metrics.`,
+        dataSources: [`GameSession: init-${patientId}`],
+        confidenceScore: 0.90,
+        priority: 'INFO',
+        isClinicalDiagnosis: false,
+        timestamp: new Date(Date.now() - 3600000 * 3).toISOString(),
+        metricsComparison: {
+          metricName: 'Pattern Accuracy',
+          recentValue: `${patScore}%`,
+          baselineValue: `${patScore - 5}%`,
+          deviation: '+5% positive engagement',
+        },
+      },
+      {
+        id: `obs-${patientId}-2`,
+        patientId,
+        category: 'MEMORY_ACTIVITY',
+        title: `Steady Delayed Recall Performance`,
+        observation: `${p?.name || 'Patient'} completed memory recall challenges with ${memScore}% retention and zero distress.`,
+        explainabilityReason: `Autobiographical grounding in familiar culture supports steady recall.`,
+        dataSources: [`GameSession: memory-${patientId}`],
+        confidenceScore: 0.86,
+        priority: 'INFO',
+        isClinicalDiagnosis: false,
+        timestamp: new Date(Date.now() - 3600000 * 10).toISOString(),
+        metricsComparison: {
+          metricName: 'Memory Recall',
+          recentValue: `${memScore}%`,
+          baselineValue: `${memScore}%`,
+          deviation: 'Stable baseline adherence',
+        },
+      },
+    ];
   }
 
-  public getObservations(): AIObservation[] {
-    return this.getAIObservations();
+  public getObservations(patientId?: string): AIObservation[] {
+    return this.getAIObservations(patientId);
   }
 
   public saveAIObservations(observations: AIObservation[]): void {

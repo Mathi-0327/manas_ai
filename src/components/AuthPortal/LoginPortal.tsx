@@ -1,23 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  ArrowRight, 
-  Stethoscope, 
+  User, 
   MapPin, 
-  X,
-  Sparkles,
-  Shield,
-  Gamepad2,
-  Image as ImageIcon,
-  HeartHandshake,
-  Check,
-  ChevronDown,
-  Volume2
+  Languages, 
+  Shield, 
+  ArrowRight, 
+  Sparkles, 
+  Stethoscope, 
+  X, 
+  Check, 
+  UserPlus, 
+  Phone,
+  Calendar,
+  Lock,
+  ArrowLeft,
+  Users
 } from 'lucide-react';
 import { PatientProfile, SupportedLanguage, UserRole } from '../../types';
 import { PatientRoute } from '../../App';
-import { localDB } from '../../lib/storage';
+import { localDB, DEFAULT_PATIENTS } from '../../lib/storage';
 import { audioService } from '../../lib/audioService';
-import { ManasLogo } from '../Brand/ManasLogo';
 import { LanguageSelectionScreen } from './LanguageSelectionScreen';
 
 interface LoginPortalProps {
@@ -39,19 +41,19 @@ const REGIONS = [
 const AVATARS = [
   {
     url: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&auto=format&fit=crop&q=80',
-    label: 'Grandpa Joy',
+    label: 'Elder 1',
   },
   {
     url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=80',
-    label: 'Grandma Maya',
+    label: 'Elder 2',
   },
   {
     url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&auto=format&fit=crop&q=80',
-    label: 'Senior Farmer',
+    label: 'Elder 3',
   },
   {
     url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&auto=format&fit=crop&q=80',
-    label: 'Senior Teacher',
+    label: 'Elder 4',
   },
 ];
 
@@ -59,71 +61,98 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
   onPatientLogin,
   onCaregiverLogin,
 }) => {
+  // Step in Auth Flow: LOGIN (Profile/Form) -> LANGUAGE_SELECTION -> Main App
   const [currentStep, setCurrentStep] = useState<'LOGIN' | 'LANGUAGE_SELECTION'>('LOGIN');
-  const [pendingRoute, setPendingRoute] = useState<PatientRoute>('GAMES');
-  
-  // Individual Elder Profile State
-  const [patientName, setPatientName] = useState('Ravi Kumar');
-  const [patientAge, setPatientAge] = useState(72);
-  const [selectedRegion, setSelectedRegion] = useState('Assam (Guwahati & Tezpur)');
-  const [selectedAvatar, setSelectedAvatar] = useState(AVATARS[0].url);
-  const [showEditProfile, setShowEditProfile] = useState(false);
+
+  // Mode: EXISTING_PATIENT (Signed In) or NEW_REGISTRATION
+  const [viewMode, setViewMode] = useState<'EXISTING_PATIENT' | 'NEW_REGISTRATION'>('EXISTING_PATIENT');
+
+  // Registry & Active Patient State
+  const [patientRegistry, setPatientRegistry] = useState<PatientProfile[]>([]);
+  const [selectedPatient, setSelectedPatient] = useState<PatientProfile | null>(null);
   const [draftPatient, setDraftPatient] = useState<PatientProfile | null>(null);
+
+  // New Registration Form Fields
+  const [regName, setRegName] = useState('');
+  const [regAge, setRegAge] = useState<number>(70);
+  const [regGender, setRegGender] = useState<'MALE' | 'FEMALE' | 'OTHER'>('MALE');
+  const [regRegion, setRegRegion] = useState('Assam (Guwahati & Tezpur)');
+  const [regAvatar, setRegAvatar] = useState(AVATARS[0].url);
+  const [regCaregiverName, setRegCaregiverName] = useState('');
+  const [regCaregiverContact, setRegCaregiverContact] = useState('');
+  const [showEmergencyFields, setShowEmergencyFields] = useState(false);
 
   // Discreet Caregiver Access Modal State
   const [showCaregiverModal, setShowCaregiverModal] = useState(false);
   const [caregiverEmail, setCaregiverEmail] = useState('priyanka.care@manas.health');
-  const [caregiverPassword, setCaregiverPassword] = useState('1234');
+  const [caregiverPassword, setCaregiverPassword] = useState('');
   const [caregiverRole, setCaregiverRole] = useState<UserRole>('CAREGIVER');
   const [authError, setAuthError] = useState<string | null>(null);
 
+  // Load registry on mount
   useEffect(() => {
-    // Load existing individual profile from local storage if available
-    const existing = localDB.getPatientProfile();
-    if (existing) {
-      setPatientName(existing.name || 'Ravi Kumar');
-      setPatientAge(existing.age || 72);
-      setSelectedRegion(existing.region || 'Assam (Guwahati & Tezpur)');
-      if (existing.avatarUrl) {
-        setSelectedAvatar(existing.avatarUrl);
-      }
+    const registry = localDB.getPatientRegistry();
+    setPatientRegistry(registry);
+
+    const active = localDB.getPatientProfile();
+    if (active && registry.some((p) => p.id === active.id)) {
+      setSelectedPatient(active);
+      setViewMode('EXISTING_PATIENT');
+    } else if (registry.length > 0) {
+      setSelectedPatient(registry[0]);
+      setViewMode('EXISTING_PATIENT');
+    } else {
+      setViewMode('NEW_REGISTRATION');
     }
   }, []);
 
-  const handleLaunchMode = (route: PatientRoute) => {
-    setPendingRoute(route);
+  // 1. Handle Existing Patient Continue -> Proceed to Language Selection
+  const handleExistingPatientContinue = (patient: PatientProfile) => {
+    setAuthError(null);
+    audioService.playFeedbackSound('GENTLE_TAP');
+    setDraftPatient(patient);
+    setCurrentStep('LANGUAGE_SELECTION');
+  };
+
+  // 2. Handle New Registration Form Submit -> Proceed to Language Selection
+  const handleNewRegistrationSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!regName.trim()) {
+      setAuthError('Please enter the patient full name');
+      return;
+    }
+
     setAuthError(null);
     audioService.playFeedbackSound('GENTLE_TAP');
 
-    const existing = localDB.getPatientProfile();
-
-    const profile: PatientProfile = {
-      id: existing?.id || 'patient-personal-001',
-      name: patientName.trim() || 'Ravi Kumar',
-      age: Number(patientAge) || 72,
-      gender: existing?.gender || 'MALE',
-      preferredLanguage: existing?.preferredLanguage || 'en',
-      region: selectedRegion,
-      avatarUrl: selectedAvatar,
-      culturalInterests: existing?.culturalInterests || [
-        'Bihu & Tea Gardening',
+    const newProfile: PatientProfile = {
+      id: `patient-${Date.now()}`,
+      name: regName.trim(),
+      age: Number(regAge) || 70,
+      gender: regGender,
+      region: regRegion,
+      preferredLanguage: 'en',
+      avatarUrl: regAvatar,
+      culturalInterests: [
         'Traditional Folk Music & Tales',
-        'Morning Tea & Garden Walks',
+        'Bihu & Tea Gardening',
+        'Morning Walks & Peaceful Rest',
       ],
-      medicalDataProvided: existing?.medicalDataProvided || false,
-      caregiverName: existing?.caregiverName || 'Family Member',
-      caregiverContact: existing?.caregiverContact || '+91 98640 12345',
-      baseline: existing?.baseline || null,
+      medicalDataProvided: false,
+      caregiverName: regCaregiverName.trim() || 'Family Caregiver',
+      caregiverContact: regCaregiverContact.trim() || '+91 98000 00000',
+      baseline: null,
       currentDifficultyLevel: 2,
       fatigueScore: 10,
       lastSyncTimestamp: new Date().toISOString(),
       syncStatus: 'SYNCED',
     };
 
-    setDraftPatient(profile);
+    setDraftPatient(newProfile);
     setCurrentStep('LANGUAGE_SELECTION');
   };
 
+  // 3. Final Step: Language Selected -> Save Profile and Enter App
   const handleFinalizeWithLanguage = (chosenLang: SupportedLanguage) => {
     if (!draftPatient) return;
 
@@ -133,16 +162,12 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
     });
 
     localDB.setLoggedInSession('PATIENT', saved.id);
+    audioService.playFeedbackSound('SUCCESS');
 
-    audioService.speak(
-      `Welcome back! Opening your ${pendingRoute === 'GAMES' ? 'cognitive games' : 'cherished memories'}.`,
-      undefined,
-      { fallbackOnly: false }
-    );
-
-    onPatientLogin(saved, pendingRoute);
+    onPatientLogin(saved, 'HOME');
   };
 
+  // Caregiver Login Handler
   const handleCaregiverSignIn = (e: React.FormEvent) => {
     e.preventDefault();
     if (!caregiverEmail.trim() || !caregiverPassword.trim()) {
@@ -150,8 +175,9 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
       return;
     }
 
-    if (caregiverPassword !== '1234') {
-      setAuthError('Invalid passcode. Use demo passcode: 1234');
+    if (caregiverPassword !== '2703') {
+      setAuthError('Invalid passcode. Please check and try again.');
+      audioService.playFeedbackSound('GENTLE_TAP');
       return;
     }
 
@@ -165,13 +191,11 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
   const handleQuickDemoCaregiver = (role: UserRole, email: string) => {
     setCaregiverRole(role);
     setCaregiverEmail(email);
-    setCaregiverPassword('1234');
-    audioService.playFeedbackSound('SUCCESS');
-    localDB.setLoggedInSession(role, null);
-    setShowCaregiverModal(false);
-    onCaregiverLogin(role);
+    setCaregiverPassword('');
+    setAuthError(null);
   };
 
+  // Render Step 2: Language Selection Screen
   if (currentStep === 'LANGUAGE_SELECTION' && draftPatient) {
     return (
       <LanguageSelectionScreen
@@ -183,14 +207,15 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
     );
   }
 
+  // Render Step 1: Patient Login / Registration Screen
   return (
     <div className="min-h-screen bg-stone-100 text-stone-900 flex flex-col items-center justify-center p-4 sm:p-6 font-sans relative overflow-hidden">
-      {/* Warm Ambient Glows matching App Theme */}
+      {/* Warm Ambient Glows */}
       <div className="absolute -top-32 -left-32 w-96 h-96 bg-amber-400/20 rounded-full blur-[100px] pointer-events-none animate-pulse" style={{ animationDuration: '6s' }} />
       <div className="absolute top-1/2 -right-32 w-96 h-96 bg-emerald-500/15 rounded-full blur-[100px] pointer-events-none" />
       <div className="absolute -bottom-32 left-1/3 w-96 h-96 bg-orange-400/15 rounded-full blur-[120px] pointer-events-none" />
 
-      {/* Subtle Pattern Grid Background */}
+      {/* Grid Pattern Background */}
       <div 
         className="absolute inset-0 opacity-[0.03] pointer-events-none"
         style={{
@@ -199,33 +224,58 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
         }}
       />
 
-      {/* Top Floating Badge */}
-      <div className="relative z-10 mb-4 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 border border-amber-300/80 text-amber-900 text-xs font-bold shadow-md backdrop-blur-md">
-        <span className="flex h-2 w-2 relative">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-        </span>
-        <span>North East Cognitive Companion</span>
-      </div>
-
-      {/* Main Card: Focused 2-Button Clean Action Container */}
-      <div className="w-full max-w-lg bg-white border border-stone-200/90 rounded-3xl shadow-[0_20px_50px_-15px_rgba(180,83,9,0.15)] overflow-hidden z-10 relative">
+      {/* Main Container Card */}
+      <div className="w-full max-w-lg bg-white border border-stone-200/90 rounded-3xl shadow-[0_20px_50px_-15px_rgba(180,83,9,0.15)] overflow-hidden z-10 relative my-4">
         
-        {/* Top Gradient Banner matching App Hero */}
-        <div className="h-2 w-full bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700" />
+        {/* Top Gradient Banner */}
+        <div className="h-2.5 w-full bg-gradient-to-r from-amber-500 via-amber-600 to-emerald-600" />
 
-        {/* Header with Logo */}
-        <div className="pt-6 pb-2 px-6 sm:px-8 text-center flex flex-col items-center">
-          <ManasLogo size="lg" theme="amber" showTagline={false} animated={true} />
-          
-          <h1 
-            className="text-2xl sm:text-3xl font-black text-stone-900 mt-3 tracking-tight"
+        {/* Header with App Name & Logo */}
+        <div className="pt-6 pb-4 px-6 sm:px-8 border-b border-stone-100 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            {/* Glowing App Emblem */}
+            <div
+              className="relative w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center p-2.5 transition-all"
+              style={{
+                background: 'linear-gradient(135deg, #d97706 0%, #f59e0b 50%, #059669 100%)',
+                boxShadow: '0 8px 20px -4px rgba(217, 119, 6, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.4)',
+              }}
+            >
+              <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-sm">
+                <path d="M20 34C20 34 8 26.5 8 17.5C8 12.5 12 8.5 17 8.5C18.8 8.5 20 9.8 20 9.8C20 9.8 21.2 8.5 23 8.5C28 8.5 32 12.5 32 17.5C32 26.5 20 34 20 34Z" fill="white" fillOpacity="0.25" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M13.5 19C13.5 15.4 16.4 12.5 20 12.5C23.6 12.5 26.5 15.4 26.5 19C26.5 23 20 28.5 20 28.5C20 28.5 13.5 23 13.5 19Z" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                <circle cx="20" cy="18.5" r="2.5" fill="white" />
+              </svg>
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-black tracking-tight text-stone-900">
+                  MANAS AI
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300/80 text-[10px] font-extrabold uppercase tracking-wider">
+                  Patient Login
+                </span>
+              </div>
+              <p className="text-xs text-stone-500 font-medium">
+                Cognitive Health & Memory Companion
+              </p>
+            </div>
+          </div>
+
+          {/* Caregiver Portal Quick Link */}
+          <button
+            type="button"
+            onClick={() => {
+              setShowCaregiverModal(true);
+              setAuthError(null);
+              audioService.playFeedbackSound('GENTLE_TAP');
+            }}
+            className="p-2 rounded-xl bg-stone-100 hover:bg-amber-50 border border-stone-200 text-stone-600 hover:text-amber-800 transition-all cursor-pointer shrink-0"
+            title="Caregiver Portal"
           >
-            Namaskar, {patientName.split(' ')[0] || 'Elder'}!
-          </h1>
-          <p className="text-xs sm:text-sm text-stone-600 mt-1 font-medium">
-            Your gentle voice companion for memory, mental agility & peace
-          </p>
+            <Stethoscope className="w-4 h-4 text-amber-600" />
+          </button>
         </div>
 
         {/* Error Notification */}
@@ -235,208 +285,337 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
           </div>
         )}
 
-        {/* Main 2-Action Section: Start Game & Memories */}
-        <div className="p-6 sm:p-8 pt-3 space-y-4">
-          
-          {/* Section Header */}
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-extrabold text-stone-600 uppercase tracking-wider flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-              <span>Choose What You'd Like to Do</span>
-            </span>
-            <span className="text-[10px] text-amber-800 font-bold bg-amber-100/70 px-2 py-0.5 rounded-full">
-              Voice-Ready
-            </span>
-          </div>
-
-          {/* 1. START GAME Big Action Card */}
-          <button
-            type="button"
-            onClick={() => handleLaunchMode('GAMES')}
-            className="w-full p-4 sm:p-5 rounded-2xl border-2 border-amber-400 bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 hover:from-amber-600 hover:via-amber-700 hover:to-amber-800 text-white text-left shadow-lg shadow-amber-600/25 transition-all transform active:scale-98 cursor-pointer flex items-center justify-between group"
-          >
-            <div className="flex items-center gap-3.5">
-              <div className="w-13 h-13 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-white shrink-0 border border-white/30 shadow-inner">
-                <Gamepad2 className="w-7 h-7 stroke-[2.2]" />
-              </div>
-              <div>
-                <span className="inline-block px-2 py-0.5 rounded-full bg-white/20 text-amber-100 text-[10px] font-extrabold tracking-wider uppercase mb-1">
-                  Cognitive Workout
-                </span>
-                <h3 className="text-lg sm:text-xl font-black tracking-tight text-white leading-tight">
-                  Start Game
-                </h3>
-                <p className="text-xs text-amber-100/90 font-medium mt-0.5">
-                  Play memory puzzles, riddles & regional brain games
-                </p>
-              </div>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center group-hover:translate-x-1 transition-transform shrink-0">
-              <ArrowRight className="w-5 h-5 text-white" />
-            </div>
-          </button>
-
-          {/* 2. MEMORIES Big Action Card */}
-          <button
-            type="button"
-            onClick={() => handleLaunchMode('MEMORIES')}
-            className="w-full p-4 sm:p-5 rounded-2xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-700 hover:via-teal-700 hover:to-emerald-800 text-white text-left shadow-lg shadow-emerald-700/20 transition-all transform active:scale-98 cursor-pointer flex items-center justify-between group"
-          >
-            <div className="flex items-center gap-3.5">
-              <div className="w-13 h-13 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-white shrink-0 border border-white/30 shadow-inner">
-                <ImageIcon className="w-7 h-7 stroke-[2.2]" />
-              </div>
-              <div>
-                <span className="inline-block px-2 py-0.5 rounded-full bg-white/20 text-emerald-100 text-[10px] font-extrabold tracking-wider uppercase mb-1">
-                  Life & Culture
-                </span>
-                <h3 className="text-lg sm:text-xl font-black tracking-tight text-white leading-tight">
-                  Memories
-                </h3>
-                <p className="text-xs text-emerald-100/90 font-medium mt-0.5">
-                  Browse family photo albums, tea garden songs & stories
-                </p>
-              </div>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center group-hover:translate-x-1 transition-transform shrink-0">
-              <ArrowRight className="w-5 h-5 text-white" />
-            </div>
-          </button>
-
-          {/* Personal Profile Summary / Customization Bar */}
-          <div className="p-3 bg-stone-50 border border-stone-200 rounded-2xl mt-2">
+        {/* ========================================================================= */}
+        {/* VIEW MODE 1: EXISTING PATIENT (ALREADY SIGNED IN / REGISTERED)           */}
+        {/* ========================================================================= */}
+        {viewMode === 'EXISTING_PATIENT' && (
+          <div className="p-6 sm:p-8 space-y-5">
+            {/* Section Header */}
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <img
-                  src={selectedAvatar}
-                  alt={patientName}
-                  className="w-10 h-10 rounded-xl object-cover border border-amber-300 shadow-2xs shrink-0"
-                />
-                <div>
-                  <p className="text-xs font-extrabold text-stone-900">{patientName}</p>
-                  <p className="text-[11px] text-stone-500 flex items-center gap-1 font-medium">
-                    <MapPin className="w-3 h-3 text-amber-600" />
-                    <span>{selectedRegion.split(' ')[0]} • Age {patientAge}</span>
-                  </p>
-                </div>
+              <div>
+                <h2 className="text-base sm:text-lg font-black text-stone-900">
+                  Select Patient Profile
+                </h2>
+                <p className="text-xs text-stone-500 font-medium">
+                  Choose your profile to proceed to language selection
+                </p>
               </div>
 
               <button
                 type="button"
-                onClick={() => setShowEditProfile(!showEditProfile)}
-                className="px-2.5 py-1 text-xs font-bold text-amber-800 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+                onClick={() => {
+                  setViewMode('NEW_REGISTRATION');
+                  setRegName('');
+                  setRegAge(68);
+                  setRegGender('FEMALE');
+                  setRegRegion('Assam (Guwahati & Tezpur)');
+                  setRegAvatar(AVATARS[1].url);
+                  audioService.playFeedbackSound('GENTLE_TAP');
+                }}
+                className="px-3 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
               >
-                <span>{showEditProfile ? 'Close' : 'Profile'}</span>
-                <ChevronDown className={`w-3 h-3 transition-transform ${showEditProfile ? 'rotate-180' : ''}`} />
+                <UserPlus className="w-3.5 h-3.5" />
+                <span>+ New Registration</span>
               </button>
             </div>
 
-            {/* Expandable Profile Customizer */}
-            {showEditProfile && (
-              <div className="mt-3 pt-3 border-t border-stone-200 space-y-3 animate-in fade-in duration-150">
-                <div>
-                  <label className="block text-[11px] font-bold text-stone-600 mb-1">
-                    Your Name
-                  </label>
+            {/* List of Registered Patients */}
+            <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+              {patientRegistry.map((patient) => {
+                const isSelected = selectedPatient?.id === patient.id;
+                return (
+                  <div
+                    key={patient.id}
+                    onClick={() => {
+                      setSelectedPatient(patient);
+                      audioService.playFeedbackSound('GENTLE_TAP');
+                    }}
+                    className={`p-3.5 rounded-2xl border-2 transition-all flex items-center justify-between gap-3 cursor-pointer ${
+                      isSelected
+                        ? 'bg-amber-50/90 border-amber-500 ring-2 ring-amber-400/20 shadow-xs'
+                        : 'bg-stone-50 border-stone-200 hover:bg-stone-100 text-stone-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <img
+                        src={patient.avatarUrl || AVATARS[0].url}
+                        alt={patient.name}
+                        className="w-12 h-12 rounded-2xl object-cover border-2 border-amber-300 shadow-2xs shrink-0"
+                      />
+                      <div className="min-w-0">
+                        <p className="text-sm font-extrabold text-stone-900 truncate">
+                          {patient.name}
+                        </p>
+                        <p className="text-xs text-stone-500 font-medium flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-amber-600 shrink-0" />
+                          <span className="truncate">{patient.region.split(' ')[0]} • Age {patient.age}</span>
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      {isSelected ? (
+                        <div className="w-6 h-6 rounded-full bg-amber-600 text-white flex items-center justify-center shadow-xs">
+                          <Check className="w-3.5 h-3.5 stroke-[3]" />
+                        </div>
+                      ) : (
+                        <span className="text-xs font-bold text-stone-400">Select</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Active Selected Patient Continue Button */}
+            {selectedPatient && (
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => handleExistingPatientContinue(selectedPatient)}
+                  className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 hover:from-amber-600 hover:via-amber-700 hover:to-amber-800 text-white font-black text-base shadow-lg shadow-amber-600/30 flex items-center justify-center gap-2.5 transition-all transform active:scale-98 cursor-pointer"
+                >
+                  <span>Select Language & Continue</span>
+                  <ArrowRight className="w-5 h-5 stroke-[2.5]" />
+                </button>
+              </div>
+            )}
+
+            {/* Switch to New Registration Banner */}
+            <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200/80 text-center">
+              <p className="text-xs text-stone-600 font-medium">
+                Want to register a different patient?{' '}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setViewMode('NEW_REGISTRATION');
+                    setRegName('');
+                    setRegAge(68);
+                    setRegGender('FEMALE');
+                    setRegRegion('Assam (Guwahati & Tezpur)');
+                    setRegAvatar(AVATARS[1].url);
+                    audioService.playFeedbackSound('GENTLE_TAP');
+                  }}
+                  className="text-amber-800 font-extrabold hover:underline cursor-pointer"
+                >
+                  Create New Registration
+                </button>
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* VIEW MODE 2: NEW PATIENT REGISTRATION                                    */}
+        {/* ========================================================================= */}
+        {viewMode === 'NEW_REGISTRATION' && (
+          <form onSubmit={handleNewRegistrationSubmit} className="p-6 sm:p-8 space-y-4">
+            {/* Header & Back Button */}
+            <div className="flex items-center justify-between pb-2 border-b border-stone-100">
+              <div>
+                <h2 className="text-base sm:text-lg font-black text-stone-900">
+                  New Patient Registration
+                </h2>
+                <p className="text-xs text-stone-500 font-medium">
+                  Fill in patient details to create profile
+                </p>
+              </div>
+
+              {patientRegistry.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setViewMode('EXISTING_PATIENT');
+                    audioService.playFeedbackSound('GENTLE_TAP');
+                  }}
+                  className="px-2.5 py-1 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                >
+                  <ArrowLeft className="w-3 h-3" />
+                  <span>Existing Patients</span>
+                </button>
+              )}
+            </div>
+
+            {/* 1. Name & Age */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-bold text-stone-700 mb-1">
+                  Patient Full Name *
+                </label>
+                <div className="relative">
                   <input
                     type="text"
-                    value={patientName}
-                    onChange={(e) => setPatientName(e.target.value)}
-                    placeholder="e.g. Ravi Kumar"
-                    className="w-full bg-white border border-stone-300 focus:border-amber-500 rounded-xl px-3 py-2 text-xs sm:text-sm font-bold text-stone-900 outline-none"
+                    value={regName}
+                    onChange={(e) => setRegName(e.target.value)}
+                    placeholder="e.g. Maya Devi"
+                    className="w-full bg-stone-50 focus:bg-white border border-stone-300 focus:border-amber-500 rounded-xl px-3.5 py-2.5 pl-9 text-xs sm:text-sm font-bold text-stone-900 outline-none transition-colors"
+                    required
+                    autoFocus
+                  />
+                  <User className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-stone-700 mb-1">
+                  Age *
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    value={regAge}
+                    onChange={(e) => setRegAge(Number(e.target.value))}
+                    min={40}
+                    max={110}
+                    className="w-full bg-stone-50 focus:bg-white border border-stone-300 focus:border-amber-500 rounded-xl px-3 py-2.5 pl-8 text-xs sm:text-sm font-bold text-stone-900 outline-none transition-colors"
                     required
                   />
+                  <Calendar className="w-3.5 h-3.5 text-stone-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
                 </div>
+              </div>
+            </div>
 
-                <div className="grid grid-cols-2 gap-2">
+            {/* 2. Gender & Region */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-stone-700 mb-1">
+                  Gender
+                </label>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {(['MALE', 'FEMALE', 'OTHER'] as const).map((g) => (
+                    <button
+                      key={g}
+                      type="button"
+                      onClick={() => setRegGender(g)}
+                      className={`py-2 px-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                        regGender === g
+                          ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
+                          : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100'
+                      }`}
+                    >
+                      {g === 'MALE' ? 'Male' : g === 'FEMALE' ? 'Female' : 'Other'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-stone-700 mb-1">
+                  Region / State
+                </label>
+                <div className="relative">
+                  <select
+                    value={regRegion}
+                    onChange={(e) => setRegRegion(e.target.value)}
+                    className="w-full bg-stone-50 focus:bg-white border border-stone-300 focus:border-amber-500 rounded-xl px-3 py-2 text-xs font-bold text-stone-800 outline-none appearance-none"
+                  >
+                    {REGIONS.map((r) => (
+                      <option key={r} value={r}>
+                        {r}
+                      </option>
+                    ))}
+                  </select>
+                  <MapPin className="w-3.5 h-3.5 text-stone-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Photo Avatar */}
+            <div>
+              <label className="block text-xs font-bold text-stone-700 mb-1.5">
+                Choose Photo Avatar
+              </label>
+              <div className="flex items-center gap-2.5">
+                {AVATARS.map((av, idx) => (
+                  <button
+                    key={av.url}
+                    type="button"
+                    onClick={() => {
+                      setRegAvatar(av.url);
+                      audioService.playFeedbackSound('GENTLE_TAP');
+                    }}
+                    className={`p-1 rounded-2xl border-2 transition-all cursor-pointer ${
+                      regAvatar === av.url
+                        ? 'border-amber-500 ring-2 ring-amber-400/40 scale-105 shadow-sm'
+                        : 'border-stone-200 opacity-60 hover:opacity-100'
+                    }`}
+                  >
+                    <img
+                      src={av.url}
+                      alt={`Avatar ${idx + 1}`}
+                      className="w-11 h-11 rounded-xl object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 4. Optional Caregiver / Emergency Contact */}
+            <div>
+              <button
+                type="button"
+                onClick={() => setShowEmergencyFields(!showEmergencyFields)}
+                className="text-[11px] font-bold text-amber-800 hover:text-amber-900 flex items-center gap-1 cursor-pointer"
+              >
+                <span>{showEmergencyFields ? '− Hide Emergency Contact' : '+ Add Caregiver / Emergency Contact'}</span>
+              </button>
+
+              {showEmergencyFields && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-2 p-3 bg-amber-50/50 border border-amber-200/80 rounded-2xl animate-in fade-in duration-150">
                   <div>
-                    <label className="block text-[11px] font-bold text-stone-600 mb-1">
-                      Age
+                    <label className="block text-[10px] font-bold text-stone-700 mb-1">
+                      Caregiver Name
                     </label>
                     <input
-                      type="number"
-                      value={patientAge}
-                      onChange={(e) => setPatientAge(Number(e.target.value))}
-                      className="w-full bg-white border border-stone-300 focus:border-amber-500 rounded-xl px-3 py-2 text-xs sm:text-sm font-bold text-stone-900 outline-none"
+                      type="text"
+                      value={regCaregiverName}
+                      onChange={(e) => setRegCaregiverName(e.target.value)}
+                      placeholder="e.g. Priyanka Kumar"
+                      className="w-full bg-white border border-stone-300 rounded-xl px-2.5 py-1.5 text-xs font-bold text-stone-900 outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-bold text-stone-600 mb-1">
-                      Region
+                    <label className="block text-[10px] font-bold text-stone-700 mb-1">
+                      Emergency Phone
                     </label>
-                    <select
-                      value={selectedRegion}
-                      onChange={(e) => setSelectedRegion(e.target.value)}
-                      className="w-full bg-white border border-stone-300 focus:border-amber-500 rounded-xl px-2 py-2 text-xs font-bold text-stone-800 outline-none"
-                    >
-                      {REGIONS.map((r) => (
-                        <option key={r} value={r}>
-                          {r.split(' ')[0]}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={regCaregiverContact}
+                        onChange={(e) => setRegCaregiverContact(e.target.value)}
+                        placeholder="+91 98640 12345"
+                        className="w-full bg-white border border-stone-300 rounded-xl px-2.5 py-1.5 pl-7 text-xs font-bold text-stone-900 outline-none"
+                      />
+                      <Phone className="w-3 h-3 text-stone-400 absolute left-2 top-1/2 -translate-y-1/2" />
+                    </div>
                   </div>
                 </div>
+              )}
+            </div>
 
-                <div>
-                  <label className="block text-[11px] font-bold text-stone-600 mb-1">
-                    Choose Photo Avatar
-                  </label>
-                  <div className="flex gap-2">
-                    {AVATARS.map((av) => (
-                      <button
-                        key={av.label}
-                        type="button"
-                        onClick={() => setSelectedAvatar(av.url)}
-                        className={`p-0.5 rounded-xl border-2 transition-all cursor-pointer ${
-                          selectedAvatar === av.url
-                            ? 'border-amber-500 ring-2 ring-amber-400/40 scale-105'
-                            : 'border-stone-200 opacity-60 hover:opacity-100'
-                        }`}
-                      >
-                        <img src={av.url} alt={av.label} className="w-9 h-9 rounded-lg object-cover" />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+            {/* Submit Button */}
+            <div className="pt-2">
+              <button
+                type="submit"
+                className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 hover:from-amber-600 hover:via-amber-700 hover:to-amber-800 text-white font-black text-base shadow-lg shadow-amber-600/30 flex items-center justify-center gap-2.5 transition-all transform active:scale-98 cursor-pointer"
+              >
+                <span>Register & Select Language</span>
+                <ArrowRight className="w-5 h-5 stroke-[2.5]" />
+              </button>
+            </div>
+          </form>
+        )}
 
-        {/* Discreet Caregiver Access Footer */}
-        <div className="py-3 px-6 bg-stone-50 border-t border-stone-150 flex items-center justify-between text-xs text-stone-500">
-          <span className="text-[11px] flex items-center gap-1.5 text-stone-500 font-medium">
+        {/* Footer */}
+        <div className="py-3 px-6 sm:px-8 bg-stone-50 border-t border-stone-150 flex items-center justify-between text-xs text-stone-500">
+          <span className="text-[11px] flex items-center gap-1.5 text-stone-600 font-medium">
             <Shield className="w-3.5 h-3.5 text-emerald-600" />
-            100% Offline & Private
+            100% Offline & Private Encrypted
           </span>
-          <button
-            type="button"
-            onClick={() => {
-              setShowCaregiverModal(true);
-              setAuthError(null);
-              audioService.playFeedbackSound('GENTLE_TAP');
-            }}
-            className="text-stone-400 hover:text-stone-700 text-[11px] font-medium flex items-center gap-1 transition-colors cursor-pointer"
-            title="Family & Caregiver Access"
-          >
-            <Stethoscope className="w-3 h-3 text-stone-400" />
-            <span>Family & Clinical Portal</span>
-          </button>
+          <span className="text-[11px] text-stone-400 font-medium">
+            North East Cognitive Health
+          </span>
         </div>
-      </div>
-
-      {/* Floating Feature Highlights in Warm Tones */}
-      <div className="relative z-10 mt-5 flex flex-wrap items-center justify-center gap-2 text-xs font-bold text-stone-600">
-        <span className="px-3 py-1 rounded-full bg-white/80 border border-stone-200 text-stone-800 shadow-xs flex items-center gap-1.5">
-          🎙️ 7 Regional Dialects
-        </span>
-        <span className="px-3 py-1 rounded-full bg-white/80 border border-stone-200 text-stone-800 shadow-xs flex items-center gap-1.5">
-          🌿 Tea Gardens & Hill Memories
-        </span>
-        <span className="px-3 py-1 rounded-full bg-white/80 border border-stone-200 text-stone-800 shadow-xs flex items-center gap-1.5">
-          ❤️ Gentle Voice Turn-Taking
-        </span>
       </div>
 
       {/* Discreet Caregiver Login Modal */}
@@ -505,10 +684,11 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                     value={caregiverPassword}
                     onChange={(e) => setCaregiverPassword(e.target.value)}
                     placeholder="••••"
+                    autoComplete="new-password"
                     className="w-full bg-stone-50 border border-stone-300 focus:border-amber-500 rounded-xl px-3 py-2.5 text-center font-mono text-base font-bold text-stone-900 outline-none tracking-widest"
                     required
                   />
-                  <Shield className="w-4 h-4 text-stone-400 absolute right-3 top-1/2 -translate-y-1/2" />
+                  <Lock className="w-4 h-4 text-stone-400 absolute right-3 top-1/2 -translate-y-1/2" />
                 </div>
                 {authError && (
                   <p className="text-[11px] text-rose-600 mt-1 text-center font-medium">
